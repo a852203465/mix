@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.darkjrong.mix.mapper.PermissionMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.darkjrong.mix.common.pojo.entity.Permission">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="permission" property="permission"/>
+        <result column="resource_type" property="resourceType"/>
+        <result column="route" property="route"/>
+        <result column="hide" property="hide"/>
+        <result column="method" property="method"/>
+        <result column="icon" property="icon"/>
+        <result column="system_mark" property="systemMark"/>
+        <result column="created_user" property="createdUser"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_user" property="updatedUser"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="description" property="description"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        name,
+        parent_id,
+        permission,
+        resource_type,
+        route,
+        hide,
+        method,
+        icon,
+        system_mark,
+        created_user,
+        created_time,
+        updated_user,
+        updated_time,
+        description
+    </sql>
+
+    <select id="findPermissionsByRoleId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE id IN (
+                SELECT rp.permission_id
+                FROM sys_role_permission AS rp
+                WHERE rp.role_id = #{roleId,jdbcType=BIGINT}
+                )
+    </select>
+
+    <select id="findPermissionsByAccount" resultMap="BaseResultMap">
+        SELECT perm.*
+        FROM sys_permission AS perm
+                     LEFT JOIN sys_role_permission AS rp ON perm.id = rp.permission_id
+                     LEFT JOIN sys_user_role AS ur ON ur.role_id = rp.role_id
+                     LEFT JOIN sys_user AS users ON users.id = ur.user_id
+        WHERE users.account = #{account,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findPermissionByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_permission
+        where name = #{name,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findPermissions" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_permission
+        <where>
+            <choose>
+                <when test="ids != null and ids.size() != 0">
+                    id in
+                    <foreach collection="ids" separator="," open="(" item="item" index="index" close=")">
+                        #{item,jdbcType=BIGINT}
+                    </foreach>
+                </when>
+                <otherwise>
+                    id = -1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="queryPermissions" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_permission
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="systemMark != null">
+                and system_mark = #{systemMark,jdbcType=INTEGER}
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                and resource_type = #{resourceType,jdbcType=VARCHAR}
+            </if>
+            <if test="hide">
+                and hide = #{hide,jdbcType=INTEGER}
+            </if>
+        </where>
+
+    </select>
+
+    <select id="queryPermissionsByParentId" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_permission
+        where parent_id = #{parentId,jdbcType=BIGINT}
+    </select>
+</mapper>

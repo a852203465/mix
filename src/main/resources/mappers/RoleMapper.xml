@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.darkjrong.mix.mapper.RoleMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.darkjrong.mix.common.pojo.entity.Role">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="mark" property="mark"/>
+        <result column="status" property="status"/>
+        <result column="system_mark" property="systemMark"/>
+        <result column="created_user" property="createdUser"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_user" property="updatedUser"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="description" property="description"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        name,
+        mark,
+        status,
+        system_mark,
+        created_user,
+        created_time,
+        updated_user,
+        updated_time,
+        description
+    </sql>
+
+    <select id="queryRoleByUserId" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_role
+        where id = (select ur.role_id from sys_user_role as ur where ur.user_id = #{userId,jdbcType=BIGINT})
+    </select>
+    <select id="findRolesByPermissionId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_role
+        where id in (select role_id from sys_role_permission where permission_id = #{permissionId,jdbcType=BIGINT})
+    </select>
+    <select id="findRoleByMark" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_role
+        where mark = #{mark,jdbcType=VARCHAR}
+    </select>
+    <select id="findRoleByName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_role
+        where name = #{name,jdbcType=VARCHAR}
+    </select>
+    <update id="modifyStatusById">
+        update sys_role
+        set status=#{status,jdbcType=INTEGER}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="queryRoleByIds" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_role
+        <where>
+            <choose>
+                <when test="ids != null and ids.size() != 0">
+                    id in
+                    <foreach collection="ids" close=")" index="index" item="item" open="(" separator=",">
+                        #{item,jdbcType=BIGINT}
+                    </foreach>
+                </when>
+                <otherwise>
+                    id = -1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="queryRoles" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from sys_role
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="systemMark != null">
+                and system_mark = #{systemMark,jdbcType=INTEGER}
+            </if>
+            <if test="status != null">
+                and status = #{status,jdbcType=INTEGER}
+            </if>
+            <if test="notRoles != null and notRoles.size() != 0">
+                and mark not in
+                <foreach collection="notRoles" close=")" index="index" item="item" open="(" separator=",">
+                    #{item,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+
+
+
+    </select>
+</mapper>

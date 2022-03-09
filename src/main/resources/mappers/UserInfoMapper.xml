@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.darkjrong.mix.mapper.UserInfoMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.darkjrong.mix.common.pojo.entity.UserInfo">
+        <id column="id" property="id"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="name" property="name"/>
+        <result column="mail" property="mail"/>
+        <result column="sex" property="sex"/>
+        <result column="phone" property="phone"/>
+        <result column="status" property="status"/>
+        <result column="validity" property="validity"/>
+        <result column="source_type" property="sourceType"/>
+        <result column="allocated" property="allocated"/>
+        <result column="system_mark" property="systemMark"/>
+        <result column="created_user" property="createdUser"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_user" property="updatedUser"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        account,
+        password,
+        name,
+        mail,
+        sex,
+        phone,
+        status,
+        validity,
+        source_type,
+        allocated,
+        system_mark,
+        created_user,
+        created_time,
+        updated_user,
+        updated_time
+    </sql>
+
+    <select id="findUserInfoByAccount" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user
+        where account = #{account,jdbcType=VARCHAR}
+    </select>
+
+    <update id="modifyPasswordById">
+        update sys_user
+        set password = #{password,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="findUserInfosByAccountNot" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user
+        <where>
+            allocated = #{allocated,jdbcType=INTEGER}
+            <if test="accountList != null and accountList.size() != 0">
+                and account not in
+                <foreach collection="accountList" close=")" index="index" item="item" open="(" separator=",">
+                    #{item,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <update id="modifyStatusById">
+        update sys_user
+        set status = #{status,jdbcType=INTEGER}
+        where id = #{userId,jdbcType=BIGINT}
+    </update>
+
+    <update id="modifyValidityById">
+        update sys_user
+        set status   = #{status,jdbcType=INTEGER},
+            validity = #{validity,jdbcType=BIGINT}
+        where id = #{userId,jdbcType=BIGINT}
+    </update>
+
+    <select id="findUserInfos" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user
+        <where>
+            <if test="account != null and account != ''">
+                and account like concat('%', #{account,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="notAccount != null and notAccount != ''">
+                and account != #{notAccount,jdbcType=VARCHAR}
+            </if>
+            <if test="sex != null">
+                and sex = #{sex,jdbcType=INTEGER}
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone like concat('%', #{phone,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="systemMark != null">
+                and system_mark = #{systemMark,jdbcType=INTEGER}
+            </if>
+            <if test="ids != null and ids.size() != 0">
+                and id in
+                <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                    #{item,jdbcType=BIGINT}
+                </foreach>
+            </if>
+            <if test="createdUser != null and createdUser != ''">
+                and created_user=#{createdUser,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="findUserInfosByNameLike" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_user
+        where name like concat('%', #{name,jdbcType=VARCHAR}, '%')
+          and account != "admin"
+    </select>
+
+    <update id="modifyAllocatedById">
+        update sys_user
+        set allocated=#{allocated,jdbcType=INTEGER},
+            validity=#{validity,jdbcType=BIGINT}
+        where id = #{userId,jdbcType=BIGINT}
+    </update>
+
+    <select id="queryUserInfoByRoleId" resultMap="BaseResultMap">
+        SELECT users.*
+        FROM sys_user AS users
+                     LEFT JOIN sys_user_role AS ur ON ur.user_id = users.id
+                     LEFT JOIN sys_role AS role ON role.id = ur.role_id
+        where role.id = #{roleId,jdbcType=BIGINT}
+    </select>
+</mapper>

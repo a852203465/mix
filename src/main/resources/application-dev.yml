@@ -1,0 +1,26 @@
+server:
+  port: 9010
+
+spring:
+  # mysql 配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/mix?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 123456
+
+  # redis 缓存配置
+  redis:
+    host: localhost
+    port: 6379
+    database: 1
+
+#Swagger lock
+dark:
+  swagger:
+    production: false
+
+
+
+
+
+
